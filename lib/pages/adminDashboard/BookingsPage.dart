@@ -335,19 +335,42 @@ class _ReservationsPageState extends State<ReservationsPage> {
   child: Column(
     children: [
       // En-tête avec titre
-      Container(
-        padding: const EdgeInsets.all(16),
-        child: const Text(
-          'Réservations',
-          style: TextStyle(
-            backgroundColor: Color(0xFF058FB6),
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            color: Colors.white,
+     Container(
+  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+  width: double.infinity,
+  child: Row(
+    children: [
+      // Placeholder à gauche pour équilibrer le refresh
+      const SizedBox(width: 48), // même largeur que l'IconButton
+
+      // Texte centré
+      Expanded(
+        child: Center(
+          child: const Text(
+            'Réservations',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
-      
+
+      // Icône refresh à droite
+      IconButton(
+        icon: const Icon(
+          Icons.refresh,
+          color: Colors.white,
+          size: 28,
+        ),
+        onPressed: fetchReservations,
+        tooltip: "Actualiser",
+      ),
+    ],
+  ),
+),
+
       // En-tête avec compteur
       Container(
         padding: const EdgeInsets.all(16),
@@ -375,6 +398,11 @@ class _ReservationsPageState extends State<ReservationsPage> {
                   count: reservations.where((r) => r['statut'] == 'confirmée').length,
                   label: 'Confirmées',
                   color: Colors.green,
+                ),
+                _buildCounterItem(
+                 count: reservations.where((r) => r['statut'] == 'rejetée' || r['statut'] == 'rejetee').length,
+                 label: 'Rejetées',
+                 color: Colors.red,
                 ),
               ],
             ),
