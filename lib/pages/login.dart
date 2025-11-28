@@ -37,9 +37,11 @@ class _LoginPageState extends State<Login> {
 
     if (data['success'] == true) {
       String role = data['role'];
-      
-       globals.currentUserName = data['nom'];
+   globals.currentUserId = int.tryParse(data['id'].toString());
+  globals.currentUserName = data['nom'].toString();
 
+ print("ID utilisateur récupéré : ${globals.currentUserId}"); // <- test ici
+  print("Nom utilisateur : ${globals.currentUserName}");
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Connexion réussie !")),
@@ -170,22 +172,97 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(height: 30),
 
-              ElevatedButton(
-                onPressed: login,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Color(0xFF00C6FF),
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 8,
-                ),
-                child: const Text(
-                  'Se connecter',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
+            ElevatedButton(
+  onPressed: () async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Veuillez remplir tous les champs"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    var url = Uri.parse("${globals.baseUrl}login.php");
+
+    try {
+      var response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          "email": email,
+          "password": password,
+        }),
+      );
+
+      var data = json.decode(response.body);
+
+      if (data['success'] == true) {
+        // Récupération et conservation de l'ID et nom utilisateur
+       globals.currentUserId = int.tryParse(data['id'].toString());
+       globals.currentUserName = data['nom'].toString();
+
+
+        // Debug console
+        print("ID utilisateur: ${globals.currentUserId}");
+        print("Nom utilisateur: ${globals.currentUserName}");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Connexion réussie !"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Redirection selon rôle
+        String role = data['role'];
+        if (role == "admin") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AdminDashboard()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ClientPage()),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? "Identifiants incorrects"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Serveur indisponible"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      print("Erreur login: $e");
+    }
+  },
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.white,
+    foregroundColor: const Color(0xFF00C6FF),
+    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(30),
+    ),
+    elevation: 8,
+  ),
+  child: const Text(
+    'Se connecter',
+    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  ),
+),
 
               const SizedBox(height: 20),
 

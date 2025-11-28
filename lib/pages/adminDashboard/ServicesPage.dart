@@ -19,7 +19,6 @@ class _ServicesPageState extends State<ServicesPage> {
   List<dynamic> services = [];
   bool _isLoading = true;
 
-
   @override
   void initState() {
     super.initState();
@@ -46,15 +45,19 @@ class _ServicesPageState extends State<ServicesPage> {
           });
         } else {
           setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data['message'] ?? "Erreur serveur")),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(data['message'] ?? "Erreur serveur")),
+            );
+          }
         }
       } else {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Erreur de connexion au serveur")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Erreur de connexion au serveur")),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -69,15 +72,18 @@ class _ServicesPageState extends State<ServicesPage> {
   Future<void> deleteService(int id) async {
     bool? confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text("Confirmation"),
         content: const Text("Voulez-vous vraiment supprimer ce service ?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Annuler")),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text("Annuler"),
+          ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Supprimer"),
+            child: const Text("Supprimer", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -86,23 +92,41 @@ class _ServicesPageState extends State<ServicesPage> {
 
     final url = "$baseUrl/delete_service.php";
     try {
-      final response = await http.post(Uri.parse(url), body: {'id': id.toString()});
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'id': id.toString()},
+      );
       if (!mounted) return;
+      
       final data = json.decode(response.body);
       if (response.statusCode == 200 && data['success'] == true) {
         await fetchServices();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Service supprimé avec succès"), backgroundColor: Colors.green),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Service supprimé avec succès"),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? "Erreur suppression"), backgroundColor: Colors.red),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['message'] ?? "Erreur suppression"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur suppression: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Erreur suppression: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -116,19 +140,40 @@ class _ServicesPageState extends State<ServicesPage> {
     File? imageFile,
     XFile? webImage,
   }) async {
+    // Validation
+    if (titre.trim().isEmpty || description.trim().isEmpty || prix.trim().isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Veuillez remplir tous les champs"),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
     final url = "$baseUrl/edit_service.php";
     try {
       var request = http.MultipartRequest("POST", Uri.parse(url));
       request.fields['id'] = id;
-      request.fields['titre'] = titre;
-      request.fields['description'] = description;
-      request.fields['prix'] = prix;
+      request.fields['titre'] = titre.trim();
+      request.fields['description'] = description.trim();
+      request.fields['prix'] = prix.trim();
 
       if (kIsWeb && webImage != null) {
         final bytes = await webImage.readAsBytes();
-        request.files.add(http.MultipartFile.fromBytes("image", bytes, filename: webImage.name));
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "image",
+            bytes,
+            filename: webImage.name,
+          ),
+        );
       } else if (imageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath("image", imageFile.path));
+        request.files.add(
+          await http.MultipartFile.fromPath("image", imageFile.path),
+        );
       }
 
       final response = await request.send();
@@ -140,17 +185,26 @@ class _ServicesPageState extends State<ServicesPage> {
       if (response.statusCode == 200 && data['success'] == true) {
         await fetchServices();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Service modifié avec succès"), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text("Service modifié avec succès"),
+            backgroundColor: Colors.green,
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? "Erreur modification"), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(data['message'] ?? "Erreur modification"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur modification: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Erreur modification: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -169,43 +223,69 @@ class _ServicesPageState extends State<ServicesPage> {
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (builderContext, setDialogState) {
             return AlertDialog(
               title: const Text("Modifier Service"),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(controller: titleController, decoration: const InputDecoration(labelText: "Titre")),
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: "Titre",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
                     const SizedBox(height: 10),
-                    TextField(controller: descriptionController, decoration: const InputDecoration(labelText: "Description"), maxLines: 3),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: "Description",
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
                     const SizedBox(height: 10),
-                    TextField(controller: priceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Prix")),
+                    TextField(
+                      controller: priceController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: "Prix (DT)",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
                     const SizedBox(height: 20),
                     Column(
                       children: [
-                        const Text("Image du service", style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text(
+                          "Image du service",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 10),
-                        if (kIsWeb && selectedWebImage != null)
-                          FutureBuilder<Uint8List>(
-                            future: selectedWebImage!.readAsBytes(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Image.memory(snapshot.data!, height: 100, width: 100, fit: BoxFit.cover);
-                              }
-                              return const CircularProgressIndicator();
-                            },
-                          )
-                        else if (selectedImage != null)
-                          Image.file(selectedImage!, height: 100, width: 100, fit: BoxFit.cover)
-                        else if (service['image'] != null && service['image'].toString().isNotEmpty)
-                          Image.network("$baseUrl/image/${service['image']}", height: 100, width: 100, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const Icon(Icons.miscellaneous_services, size: 100))
-                        else
-                          const Icon(Icons.miscellaneous_services, size: 100),
+                        Container(
+                          height: 120,
+                          width: 120,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: _buildImagePreview(
+                              service,
+                              selectedImage,
+                              selectedWebImage,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 10),
                         ElevatedButton.icon(
                           onPressed: () async {
-                            final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+                            final XFile? pickedFile = await picker.pickImage(
+                              source: ImageSource.gallery,
+                              imageQuality: 80,
+                            );
                             if (pickedFile != null) {
                               setDialogState(() {
                                 if (kIsWeb) {
@@ -218,6 +298,10 @@ class _ServicesPageState extends State<ServicesPage> {
                           },
                           icon: const Icon(Icons.image),
                           label: const Text("Changer l'image"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF058FB6),
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ],
                     ),
@@ -225,10 +309,13 @@ class _ServicesPageState extends State<ServicesPage> {
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text("Annuler"),
+                ),
                 ElevatedButton(
                   onPressed: () async {
-                    Navigator.pop(context);
+                    Navigator.pop(dialogContext);
                     await updateServiceWithImage(
                       id: service['id'].toString(),
                       titre: titleController.text,
@@ -238,7 +325,10 @@ class _ServicesPageState extends State<ServicesPage> {
                       webImage: selectedWebImage,
                     );
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF058FB6)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF058FB6),
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text("Modifier"),
                 ),
               ],
@@ -247,6 +337,47 @@ class _ServicesPageState extends State<ServicesPage> {
         );
       },
     );
+  }
+
+  // Helper method for image preview
+  Widget _buildImagePreview(
+    Map<String, dynamic> service,
+    File? selectedImage,
+    XFile? selectedWebImage,
+  ) {
+    if (kIsWeb && selectedWebImage != null) {
+      return FutureBuilder<Uint8List>(
+        future: selectedWebImage.readAsBytes(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Image.memory(
+              snapshot.data!,
+              fit: BoxFit.cover,
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      );
+    } else if (selectedImage != null) {
+      return Image.file(selectedImage, fit: BoxFit.cover);
+    } else if (service['image'] != null &&
+        service['image'].toString().isNotEmpty) {
+      String img = service['image'].toString();
+      String imageUrl = img.startsWith("http") ? img : "$baseUrl/image/$img";
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.miscellaneous_services, size: 60);
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(child: CircularProgressIndicator());
+        },
+      );
+    } else {
+      return const Icon(Icons.miscellaneous_services, size: 60);
+    }
   }
 
   @override
@@ -261,12 +392,21 @@ class _ServicesPageState extends State<ServicesPage> {
                   padding: const EdgeInsets.all(16.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFF058FB6), Color(0xFF38B177)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF058FB6), Color(0xFF38B177)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => Addservice()));
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Addservice(),
+                          ),
+                        );
                         if (result == true) fetchServices();
                       },
                       icon: const Icon(Icons.add),
@@ -283,52 +423,118 @@ class _ServicesPageState extends State<ServicesPage> {
 
                 // Service List
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: services.length,
-                    itemBuilder: (context, index) {
-                      final service = services[index];
-                      String img = service['image'] ?? "";
-                      String finalImageUrl = img.startsWith("http") ? img : "$baseUrl/image/$img";
+                  child: services.isEmpty
+                      ? const Center(
+                          child: Text(
+                            "Aucun service disponible",
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: fetchServices,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: services.length,
+                            itemBuilder: (context, index) {
+                              final service = services[index];
+                              String img = service['image'] ?? "";
+                              String finalImageUrl = img.startsWith("http")
+                                  ? img
+                                  : "$baseUrl/image/$img";
 
-                      return Card(
-                        elevation: 5,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                        shadowColor: Colors.grey.withOpacity(0.3),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(12),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                              width: 60,
-                              height: 60,
-                              child: img.isNotEmpty
-                                  ? Image.network(finalImageUrl, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const Icon(Icons.miscellaneous_services, size: 50, color: Colors.grey))
-                                  : const Icon(Icons.miscellaneous_services, size: 50, color: Colors.grey),
-                            ),
-                          ),
-                          title: Text(service['titre'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(service['description'], style: const TextStyle(fontSize: 14, color: Colors.black87)),
-                              const SizedBox(height: 4),
-                              Text("Prix : ${service['prix']} DT", style: const TextStyle(fontSize: 13, color: Color.fromARGB(255, 122, 205, 126), fontWeight: FontWeight.w500)),
-                            ],
-                          ),
-                          isThreeLine: true,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => editServiceDialog(service), tooltip: "Modifier"),
-                              IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => deleteService(service['id']), tooltip: "Supprimer"),
-                            ],
+                              return Card(
+                                elevation: 5,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 12,
+                                ),
+                                shadowColor: Colors.grey.withOpacity(0.3),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.all(12),
+                                  leading: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: SizedBox(
+                                      width: 60,
+                                      height: 60,
+                                      child: img.isNotEmpty
+                                          ? Image.network(
+                                              finalImageUrl,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error,
+                                                  stackTrace) {
+                                                return const Icon(
+                                                  Icons.miscellaneous_services,
+                                                  size: 50,
+                                                  color: Colors.grey,
+                                                );
+                                              },
+                                            )
+                                          : const Icon(
+                                              Icons.miscellaneous_services,
+                                              size: 50,
+                                              color: Colors.grey,
+                                            ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    service['titre'],
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        service['description'],
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black87,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "Prix : ${service['prix']} DT",
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color.fromARGB(255, 125, 124, 124),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  isThreeLine: true,
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit,
+                                            color: Colors.blue),
+                                        onPressed: () =>
+                                            editServiceDialog(service),
+                                        tooltip: "Modifier",
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red),
+                                        onPressed: () =>
+                                            deleteService(service['id']),
+                                        tooltip: "Supprimer",
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                      );
-                    },
-                  ),
                 ),
               ],
             ),

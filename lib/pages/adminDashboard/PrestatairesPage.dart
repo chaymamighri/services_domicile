@@ -237,7 +237,8 @@ class _PrestatairesPageState extends State<PrestatairesPage> {
                     TextField(
                       controller: descController,
                       decoration: const InputDecoration(labelText: "Description"),
-                      maxLines: 3,
+                       maxLines: null,
+                        minLines: 3,
                     ),
                     const SizedBox(height: 20),
                     
@@ -273,6 +274,7 @@ class _PrestatairesPageState extends State<PrestatairesPage> {
                             width: 100,
                             fit: BoxFit.cover,
                           )
+                          
                         else if (prestataire['image'] != null && prestataire['image'].toString().isNotEmpty)
                           Image.network(
                             "${baseUrl}/image/${prestataire['image']}",
@@ -285,7 +287,7 @@ class _PrestatairesPageState extends State<PrestatairesPage> {
                         else
                           const Icon(Icons.person, size: 100),
                         
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
                         
                         // Bouton changer image
                         ElevatedButton.icon(
@@ -439,7 +441,9 @@ class _PrestatairesPageState extends State<PrestatairesPage> {
                                   fontSize: 14,
                                   color: Colors.black87,
                                 ),
-                                maxLines: 2,
+                               
+                                maxLines: 4,
+                             
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 4),
@@ -447,7 +451,7 @@ class _PrestatairesPageState extends State<PrestatairesPage> {
                                 "Email: ${p['email'] ?? ''}",
                                 style: const TextStyle(
                                   fontSize: 13,
-                                  color: Color.fromARGB(255, 112, 146, 163),
+                                     color: Color.fromARGB(255, 125, 124, 124),
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -456,7 +460,7 @@ class _PrestatairesPageState extends State<PrestatairesPage> {
                                 "Téléphone: ${p['telephone'] ?? ''}",
                                 style: const TextStyle(
                                   fontSize: 13,
-                                  color: Color.fromARGB(255, 122, 205, 126),
+                                 color: Color.fromARGB(255, 125, 124, 124),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -464,7 +468,8 @@ class _PrestatairesPageState extends State<PrestatairesPage> {
                                 "Adresse: ${p['adresse'] ?? ''}",
                                 style: const TextStyle(
                                   fontSize: 13,
-                                  color: Color.fromARGB(255, 203, 101, 193),
+                                   color: Color.fromARGB(255, 125, 124, 124),
+
                                 ),
                               ),
                             ],
