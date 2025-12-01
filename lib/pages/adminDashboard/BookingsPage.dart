@@ -225,7 +225,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      reservation['service_titre'] ?? "Service inconnu",
+                      reservation['service_title'] ?? "Service inconnu",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -487,3 +487,5 @@ class _ReservationsPageState extends State<ReservationsPage> {
     );
   }
 }
+
+

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:services_domicile/pages/userDashboard/profile_page.dart';
 import 'package:services_domicile/widgets/custom_appbar.dart';
 import 'package:services_domicile/globals.dart' as globals;
 import 'services_list.dart';
@@ -31,7 +32,7 @@ class _ClientPageState extends State<ClientPage> {
         username: globals.currentUserName ?? "Utilisateur",
         onLogout: () {
           globals.currentUserName = null;
-          Navigator.of(context).pushReplacementNamed('/pages/login'); // Assurez-vous que la route existe
+          Navigator.of(context).pushReplacementNamed('/pages/login');
         },
       ),
    body: _screens[_currentIndex],
@@ -51,10 +52,10 @@ bottomNavigationBar: Container(
   ),
   child: Theme(
     data: Theme.of(context).copyWith(
-      canvasColor: Colors.transparent, // pour que le fond du nav bar soit transparent
+      canvasColor: Colors.transparent, 
     ),
     child: BottomNavigationBar(
-      backgroundColor: Colors.transparent, // important pour voir le gradient
+      backgroundColor: Colors.transparent,
       elevation: 0,
       currentIndex: _currentIndex,
       selectedItemColor: Colors.white,
@@ -83,76 +84,4 @@ bottomNavigationBar: Container(
 ),
 );
 }
-}
-
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.blue[100],
-                    child: Icon(Icons.person, size: 30, color: Colors.blue[700]),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          globals.currentUserName ?? 'John Doe',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'john.doe@email.com', // Tu peux récupérer depuis globals
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Paramètres'),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.help),
-            title: const Text('Aide & Support'),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.exit_to_app),
-            title: const Text('Déconnexion'),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              globals.currentUserName = null;
-              Navigator.of(context).pushReplacementNamed('/pages/login');
-            },
-          ),
-        ],
-      ),
-    );
-  }
 }

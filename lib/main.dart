@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:services_domicile/pages/adminDashboard/UsersPage.dart';
 import 'package:services_domicile/pages/adminDashboard/adminpage.dart';
+import 'package:services_domicile/pages/userDashboard/userpage.dart';
 import 'pages/login.dart';
 import 'pages/home.dart';
 import 'pages/signup.dart';
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
         '/pages/login': (context) => const Login(),
         '/pages/signup': (context) => const SignUp(),
         '/pages/home': (context) => const Home(),
-        '/pages/userPage': (context) => const UsersPage(),
+        '/pages/userPage': (context) => const ClientPage(),
        '/pages/adminPage': (context) => const AdminDashboard(),
     
     },

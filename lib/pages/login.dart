@@ -37,8 +37,10 @@ class _LoginPageState extends State<Login> {
 
     if (data['success'] == true) {
       String role = data['role'];
+      
    globals.currentUserId = int.tryParse(data['id'].toString());
-  globals.currentUserName = data['nom'].toString();
+   globals.currentUserName = data['nom'].toString();
+   globals.currentUserEmail = data['email'].toString();
 
  print("ID utilisateur récupéré : ${globals.currentUserId}"); // <- test ici
   print("Nom utilisateur : ${globals.currentUserName}");
@@ -56,19 +58,12 @@ class _LoginPageState extends State<Login> {
         Navigator.push(
             // ignore: use_build_context_synchronously
             context, MaterialPageRoute(builder: (context) => ClientPage()));
-      } else {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Rôle inconnu : $role")));
-      }
-
-    } else {
+      }  else {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(data['message'] ?? "Identifiants incorrects")),
       );
-    }
-
+}}
   } catch (e) {
     // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(
@@ -205,11 +200,14 @@ Widget build(BuildContext context) {
         // Récupération et conservation de l'ID et nom utilisateur
        globals.currentUserId = int.tryParse(data['id'].toString());
        globals.currentUserName = data['nom'].toString();
+       globals.currentUserEmail =data['email'].toString();
 
 
         // Debug console
         print("ID utilisateur: ${globals.currentUserId}");
         print("Nom utilisateur: ${globals.currentUserName}");
+       print("Nom utilisateur: ${globals.currentUserEmail}");
+
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -220,17 +218,11 @@ Widget build(BuildContext context) {
 
         // Redirection selon rôle
         String role = data['role'];
-        if (role == "admin") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => AdminDashboard()),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => ClientPage()),
-          );
-        }
+if (role == "admin") {
+  Navigator.pushReplacementNamed(context, '/pages/adminPage');
+} else {
+  Navigator.pushReplacementNamed(context, '/pages/userPage');
+}
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

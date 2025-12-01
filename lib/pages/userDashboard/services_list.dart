@@ -36,7 +36,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
     super.dispose();
   }
 
-  // ------------------------- FETCH SERVICES -------------------------
+  // --------------FETCH SERVICES -----------------
   Future<void> _fetchServices() async {
     if (!mounted) return;
 
@@ -79,7 +79,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
     }
   }
 
-  // ------------------------- FILTRAGE -------------------------
+  // --------------FILTRAGE -----------------
   void _filterServices() {
     if (!mounted) return;
 
@@ -100,7 +100,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
     });
   }
 
-  // ------------------------- RÉSERVATION -------------------------
+  // ------------- RÉSERVATION ----------------
   Future<void> _faireReservation(Map<String, dynamic> service) async {
   // Vérifier que l'utilisateur est connecté
   if (currentUserId == null) {

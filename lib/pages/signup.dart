@@ -246,10 +246,7 @@ class _SignUpState extends State<SignUp> {
 
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const Login()),
-                      );
+                        Navigator.pushNamed(context, '/pages/login');
                     },
                     child: const Text(
                       'Déjà un compte ? Se connecter',
