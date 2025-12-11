@@ -60,21 +60,31 @@ Voici quelques captures de l’application :
 ### 🏠 Page d’accueil
 ![Home](screenshots/home.png)
 
-### 🏠 page de connexion
+###  page de connexion
 ![Connexion](screenshots/connexion.png)
 
-### 🏠page d'inscription
+### page d'inscription
 ![Inscription](screenshots/inscription.png) 
 
 ### 🏠 Dashboard Admin
 ![Dashboard](screenshots/dashboard.png)
 
-### 🏠 page ajouter service
+### page ajouter service
 ![AjoutService](screenshots/ajout_service.png)
 
-### 🏠 page ajouter service
+###  page ajouter service
 ![AjoutPrestataire](screenshots/ajout_prestataire.png)
 
-### 📅 Liste des réservations
+### 📅 Liste des réservations consulter par admin
 ![Reservations](screenshots/reservation_list.png)
+
+###  Ajout réservations
+![ReservationsService](screenshots/reservationService.png)
+
+### 📅 Liste des réservations d'un user connecter
+![ReservationsUser](screenshots/status_reservation.png)
+
+### 📅 Liste des réservations
+![Profile](screenshots/update_profile.png)
+
 
