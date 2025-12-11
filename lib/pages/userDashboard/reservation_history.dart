@@ -95,7 +95,7 @@ class ReservationCard extends StatelessWidget {
         SizedBox(width: 16),
         Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
         SizedBox(width: 4),
-        Text('${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
+        Text('${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',// si 1 chiffre on ajoute 0 devant
             style: TextStyle(color: Colors.grey[600])),
       ],
     ),
@@ -161,6 +161,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
       );
     }
   }
+// return list des reservation filtrer par status
 
   List<Map<String, dynamic>> get filteredReservations {
     if (selectedFilter == 'Toutes') return reservations;
@@ -204,6 +205,8 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
     );
   }
 
+// les icon de filtrage par status (---filter chip--)
+
   Widget _buildFilterChips() {
     final filters = ['Toutes', 'En attente', 'Confirmée', 'Rejetée'];
     return Container(
@@ -222,7 +225,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                 },
               ),
             );
-          }).toList(),
+          }).toList(),// convert le map en list puisque row
         ),
       ),
     );

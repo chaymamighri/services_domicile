@@ -37,8 +37,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
 
-  // ==== update profile ====
-// ==== update profile ====
+ 
+// update profile 
 Future<bool> updateProfile(String name, String email) async {
   try {
     final response = await http.post(
@@ -64,7 +64,7 @@ Future<bool> updateProfile(String name, String email) async {
   }
 }
 
-// ==== update password ====
+// update password
 Future<bool> updatePassword(String oldPassword, String newPassword) async {
   try {
     final response = await http.post(
@@ -77,7 +77,7 @@ Future<bool> updatePassword(String oldPassword, String newPassword) async {
       }),
     );
     
- //   print("Password Update Status: ${response.statusCode}");
+   // print("Password Update Status: ${response.statusCode}");
    // print("Password Update Response: ${response.body}");
     
     final data = json.decode(response.body);
@@ -296,7 +296,6 @@ Future<bool> updatePassword(String oldPassword, String newPassword) async {
             ),
 
         // deconnexion
-
             ListTile(
               leading: const Icon(Icons.exit_to_app),
               title: const Text('Déconnexion'),

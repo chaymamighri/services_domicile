@@ -80,7 +80,7 @@ class _AddserviceState extends State<Addservice> {
           ),
         );
       } else if (_imageFile != null) {
-        request.files.add(
+       request.files.add( // envoi vers le backend
           await http.MultipartFile.fromPath('image', _imageFile!.path),
         );
       }

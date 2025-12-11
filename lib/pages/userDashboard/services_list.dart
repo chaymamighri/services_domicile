@@ -15,8 +15,10 @@ class ServicesListScreen extends StatefulWidget {
 }
 
 class _ServicesListScreenState extends State<ServicesListScreen> {
+
   bool _isLoading = true;
   String _selectedCategory = 'Tous';
+
   final TextEditingController _searchController = TextEditingController();
 
   List<Map<String, dynamic>> services = [];
@@ -38,46 +40,46 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
 
   // --------------FETCH SERVICES -----------------
   Future<void> _fetchServices() async {
-    if (!mounted) return;
+  if (!mounted) return;
 
-    setState(() => _isLoading = true);
+  setState(() => _isLoading = true);
 
-    try {
-      final response = await http.get(Uri.parse("$baseUrl/get_all_services.php"));
+  try {
+    final response = await http.get(Uri.parse("$baseUrl/get_all_services_with_prestataire.php"));
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
 
-        if (data['success'] == true) {
-          List<dynamic> raw = data['services'];
+      if (data['success'] == true) {
+        List<dynamic> raw = data['services'];
 
-          if (!mounted) return;
+        setState(() {
+          services = raw.map<Map<String, dynamic>>((s) {
+            return {
+              'id': int.tryParse(s['id']?.toString() ?? '0') ?? 0,
+              'titre': s['titre']?.toString() ?? 'Titre non disponible',
+              'description': s['description']?.toString() ?? 'Description non disponible',
+              'prix': s['prix']?.toString() ?? '0',
+              'image': s['image']?.toString(),
+              'prestataires': s['prestataires'] != null
+                  ? List<Map<String, dynamic>>.from(s['prestataires'])
+                  : [],
+            };
+          }).toList();
 
-          setState(() {
-            services = raw.map<Map<String, dynamic>>((s) {
-              return {
-                'id': int.tryParse(s['id']?.toString() ?? '0') ?? 0,
-                'titre': s['titre']?.toString() ?? 'Titre non disponible',
-                'description': s['description']?.toString() ?? 'Description non disponible',
-                'prix': s['prix']?.toString() ?? '0',
-                'categorie': s['categorie']?.toString() ?? 'Non catégorisé',
-                'image': s['image']?.toString(),
-              };
-            }).toList();
-
-            filteredServices = List.from(services);
-            _isLoading = false;
-          });
-        } else {
-          if (mounted) setState(() => _isLoading = false);
-        }
+          filteredServices = List.from(services);
+          _isLoading = false;
+        });
       } else {
         if (mounted) setState(() => _isLoading = false);
       }
-    } catch (e) {
+    } else {
       if (mounted) setState(() => _isLoading = false);
     }
+  } catch (e) {
+    if (mounted) setState(() => _isLoading = false);
   }
+}
 
   // --------------FILTRAGE -----------------
   void _filterServices() {
@@ -88,12 +90,10 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
       filteredServices = services.where((service) {
         final titre = service['titre']?.toString().toLowerCase() ?? '';
         final description = service['description']?.toString().toLowerCase() ?? '';
-        final categorie = service['categorie']?.toString().toLowerCase() ?? '';
 
         final matchesSearch = titre.contains(query) || description.contains(query);
         final matchesCategory = _selectedCategory == 'Tous' ||
-            titre.contains(_selectedCategory.toLowerCase()) ||
-            categorie.contains(_selectedCategory.toLowerCase());
+            titre.contains(_selectedCategory.toLowerCase()) ;
 
         return matchesSearch && matchesCategory;
       }).toList();
@@ -102,33 +102,38 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
 
   // ------------- RÉSERVATION ----------------
   Future<void> _faireReservation(Map<String, dynamic> service) async {
-  // Vérifier que l'utilisateur est connecté
-  if (currentUserId == null) {
-    _showSnackBar("Veuillez vous connecter pour effectuer une réservation", Colors.red);
+  final prestataires = service['prestataires'] as List<dynamic>? ?? [];
+  if (prestataires.isEmpty) {
+    _showSnackBar("Aucun prestataire disponible pour ce service", Colors.red);
     return;
   }
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Confirmer la réservation"),
-        content: Text("Voulez-vous réserver le service \"${service['titre']}\" ?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Annuler")),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Confirmer")),
-        ],
-      ),
-    );
 
-    if (confirm == true) {
-      final reservationData = {
-        'prestataire_id': 1, // id par défaut
-        'service_nom': service['titre'],
-        'date_reservation': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        'heure_reservation': DateFormat('HH:mm').format(DateTime.now()),
-      };
-      await _confirmerReservation(reservationData);
-    }
+  // Pour l'instant on prend le premier prestataire (ou créer un choix dans l'UI)
+  final prestataire = prestataires[0];
+
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text("Confirmer la réservation"),
+      content: Text("Voulez-vous réserver le service \"${service['titre']}\" avec ${prestataire['nom']} ?"),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Annuler")),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Confirmer")),
+      ],
+    ),
+  );
+
+  if (confirm == true) {
+    final reservationData = {
+      'prestataire_id': prestataire['id'],
+      'service_nom': service['titre'],
+      'date_reservation': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      'heure_reservation': DateFormat('HH:mm').format(DateTime.now()),
+    };
+    await _confirmerReservation(reservationData);
   }
+}
+
 
   Future<void> _confirmerReservation(Map<String, dynamic> reservationData) async {
   // Vérifier que l'utilisateur est connecté
@@ -136,7 +141,6 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
     _showSnackBar("Veuillez vous connecter pour effectuer une réservation", Colors.red);
     return;
   }
-
   final String url = "$baseUrl/create_reservation.php";
   try {
     final response = await http.post(Uri.parse(url), body: {
@@ -174,7 +178,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
     );
   }
 
-  // ------------------------- BUILD -------------------------
+  // -------- BUILD ---------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,12 +195,47 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _fetchServices,
-        child: const Icon(Icons.refresh),
+       // button refresh
+   floatingActionButton: Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 5, 143, 182),   // Bleu
+            Color.fromARGB(255, 56, 177, 119), // Vert
+            Color.fromARGB(250, 146, 83, 137), // Violet
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-    );
-  }
+      child: Material(
+        type: MaterialType.circle,
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: _fetchServices,
+          child: const Center(
+            child: Icon(
+              Icons.refresh,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
   Widget _buildSearchBar() => Padding(
         padding: const EdgeInsets.all(12),
@@ -210,8 +249,9 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
         ),
       );
 
-  Widget _buildCategoryFilter() {
-    final List<Map<String, dynamic>> categories = [
+   // widget de filtrage 
+      Widget _buildCategoryFilter() {
+      final List<Map<String, dynamic>> categories = [
       {"name": "Tous", "icon": Icons.apps},
       {"name": "Plomberie", "icon": Icons.plumbing},
       {"name": "Électricité", "icon": Icons.bolt},
@@ -323,8 +363,9 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
   }
 }
 
-// ------------------------- MODAL DETAILS -------------------------
+// ---------- MODAL DETAILS ---------------
 class ServiceDetailsModal extends StatelessWidget {
+
   final Map<String, dynamic> service;
   final Function(Map<String, dynamic>) onReservation;
 

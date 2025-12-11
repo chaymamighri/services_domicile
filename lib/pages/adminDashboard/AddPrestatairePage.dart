@@ -104,7 +104,7 @@ class _AddPrestatairePageState extends State<AddPrestatairePage> {
         "POST",
         Uri.parse("$baseUrl/add_prestataire.php"),
       );
-
+       // pour que le backend puisse le recevoir 
       request.fields['nom'] = nomController.text;
       request.fields['email'] = emailController.text;
       request.fields['telephone'] = telController.text;
@@ -126,7 +126,7 @@ class _AddPrestatairePageState extends State<AddPrestatairePage> {
           await http.MultipartFile.fromPath("image", _image!.path),
         );
       }
-
+       // send request to backend
       final response = await request.send();
       final respStr = await response.stream.bytesToString();
       

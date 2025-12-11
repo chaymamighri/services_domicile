@@ -83,7 +83,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
       ),
     );
   }
-
+  // icon de statut
   Widget _buildStatusChip(String status) {
     Color backgroundColor;
     Color textColor;
@@ -225,7 +225,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      reservation['service_title'] ?? "Service inconnu",
+                      reservation['service_titre'] ?? "Service inconnu",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -325,7 +325,6 @@ class _ReservationsPageState extends State<ReservationsPage> {
     gradient: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      
       colors: [
         Color(0xFF058FB6),
         Color(0xFF38B177),
@@ -340,10 +339,8 @@ class _ReservationsPageState extends State<ReservationsPage> {
   width: double.infinity,
   child: Row(
     children: [
-      // Placeholder à gauche pour équilibrer le refresh
-      const SizedBox(width: 48), // même largeur que l'IconButton
+      const SizedBox(width: 48), 
 
-      // Texte centré
       Expanded(
         child: Center(
           child: const Text(
